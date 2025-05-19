@@ -29,21 +29,6 @@ st.markdown("""
         color: #424242;
         margin-bottom: 0.5rem;
     }
-    .card {
-        background-color: #f9f9f9;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
-    }
-    .metric-card {
-        background-color: #f0f7ff;
-        border-radius: 10px;
-        padding: 15px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        margin-bottom: 10px;
-        text-align: center;
-    }
     .positive {
         color: #4CAF50;
     }
@@ -159,7 +144,7 @@ per_seat_license_cost = st.sidebar.number_input(
     "Per-Seat License Cost (USD/month)",
     min_value=0.0,
     max_value=10000.0,
-    value=30.0,
+    value=20.0,
     step=1.0,
     help="Monthly cost per user for a per-seat licensing model"
 )
@@ -195,7 +180,7 @@ with tab1:
     archetypes_to_remove = []
 
     for i, archetype in enumerate(st.session_state.user_archetypes):
-        col1, col2, col3, col4, col5, col6 = st.columns([2, 1, 1, 1, 1, 0.5])
+        col1, col2, col3, col4, col5, col6 = st.columns([2, 1, 1, 1, 1, 0.5], vertical_alignment="bottom")
 
         with col1:
             st.session_state.user_archetypes[i]['name'] = st.text_input(
@@ -274,7 +259,7 @@ with tab2:
     models_to_remove = []
 
     for i, model in enumerate(st.session_state.ai_models):
-        col1, col2, col3, col4, col5 = st.columns([2, 1.5, 1.5, 1, 0.5])
+        col1, col2, col3, col4, col5 = st.columns([2, 1.5, 1.5, 1, 0.5], vertical_alignment="bottom")
 
         with col1:
             st.session_state.ai_models[i]['name'] = st.text_input(
@@ -330,7 +315,7 @@ with tab2:
 
 # Tab 3: Results
 with tab3:
-    st.markdown('<div class="sub-header">Cost Analysis Results</div>', unsafe_allow_html=True)
+    st.markdown('### Cost Analysis Results')
 
     # Perform calculations
     # 1. Calculate daily and monthly tokens per user archetype
@@ -389,21 +374,15 @@ with tab3:
     cost_savings = total_monthly_per_seat_cost - total_monthly_api_cost
 
     # Display summary metrics
-    st.markdown('<div class="card">', unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         st.metric("Total Monthly API Cost", f"${total_monthly_api_cost:,.2f}")
-        st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         st.metric("Total Monthly Per-Seat Cost", f"${total_monthly_per_seat_cost:,.2f}")
-        st.markdown('</div>', unsafe_allow_html=True)
 
     with col3:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         savings_color = "positive" if cost_savings > 0 else "negative"
         savings_prefix = "+" if cost_savings > 0 else ""
         st.markdown(f"""
@@ -411,9 +390,7 @@ with tab3:
         <h2 class="{savings_color}">{savings_prefix}${cost_savings:,.2f}</h2>
         <p>({savings_prefix}{(cost_savings/total_monthly_per_seat_cost*100 if total_monthly_per_seat_cost > 0 else 0):,.1f}%)</p>
         """, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('</div>', unsafe_allow_html=True)
 
     # Display cost comparison chart
     st.markdown('<div class="sub-header">Cost Comparison</div>', unsafe_allow_html=True)
@@ -590,30 +567,22 @@ with tab4:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown("### Summary Data")
         st.dataframe(summary_df, use_container_width=True)
         st.markdown(get_csv_download_link(summary_df, "genai_cost_summary.csv", "Download Summary CSV"), unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown("### User Archetypes Data")
         st.dataframe(archetypes_df, use_container_width=True)
         st.markdown(get_csv_download_link(archetypes_df, "genai_archetypes.csv", "Download Archetypes CSV"), unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown("### AI Models Data")
         st.dataframe(models_df, use_container_width=True)
         st.markdown(get_csv_download_link(models_df, "genai_models.csv", "Download Models CSV"), unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown("### Detailed Results Data")
         st.dataframe(detailed_results_df, use_container_width=True)
         st.markdown(get_csv_download_link(detailed_results_df, "genai_detailed_results.csv", "Download Detailed Results CSV"), unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
     # Export all data in a single file
     all_data = {
