@@ -8,7 +8,7 @@ import base64
 
 # Set page configuration
 st.set_page_config(
-    page_title="Generative AI API Cost Calculator",
+    page_title="AI API vs AI Team Plans Calculator",
     page_icon="💰",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -39,7 +39,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Title and introduction
-st.markdown('<div class="main-header">Generative AI API Cost Calculator</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">AI API vs AI Team Plans Calculator</div>', unsafe_allow_html=True)
 st.markdown("""
 This calculator helps you estimate and compare the costs of using Generative AI APIs versus per-seat licensing models.
 Input your organization's parameters and see detailed cost projections to make informed decisions.
@@ -128,7 +128,7 @@ def get_csv_download_link(df, filename, link_text):
     return href
 
 # Sidebar - Global Settings
-st.sidebar.markdown('<div class="sub-header">Global Settings</div>', unsafe_allow_html=True)
+st.sidebar.markdown('### Global Settings')
 
 # Organization size
 organization_size = st.sidebar.number_input(
@@ -144,7 +144,7 @@ per_seat_license_cost = st.sidebar.number_input(
     "Per-Seat License Cost (USD/month)",
     min_value=0.0,
     max_value=10000.0,
-    value=20.0,
+    value=25.0,
     step=1.0,
     help="Monthly cost per user for a per-seat licensing model"
 )
@@ -606,4 +606,4 @@ with tab4:
 
 # Footer
 st.markdown("---")
-st.markdown("Generative AI API Cost Calculator | Prototype Version 1.0")
+st.markdown("AI API vs AI Team Plans Calculator | Prototype Version 1.0")
