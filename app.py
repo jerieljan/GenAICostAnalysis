@@ -289,7 +289,7 @@ with tab2:
             )
 
         with col5:
-            if i >= 4:  # Allow removing only custom models
+            if i > 0:  # Allow removing all models except the first one
                 if st.button("🗑️", key=f"remove_model_{i}"):
                     models_to_remove.append(i)
             else:
