@@ -1,4 +1,6 @@
-# PROJECT SPECIFICATION: Generative AI API Cost Calculator (Streamlit Prototype)
+# Generative AI API Cost Calculator (Streamlit Prototype)
+
+**PROJECT SPECIFICATION**
 
 ## Introduction
 
