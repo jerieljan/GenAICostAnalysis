@@ -492,6 +492,61 @@ with tab3:
 
     st.dataframe(model_cost_summary, use_container_width=True)
 
+    # Display monthly cost breakdown by archetype and model
+    st.markdown('<div class="sub-header">Monthly Cost Breakdown by Archetype and Model</div>', unsafe_allow_html=True)
+
+    # Create a DataFrame for monthly cost breakdown by archetype and model
+    monthly_breakdown_rows = []
+    for result in results:
+        archetype_name = result['archetype_name']
+        archetype_percentage = result['percentage']
+        archetype_weight = archetype_percentage / 100 * organization_size
+
+        for model_cost in result['model_costs']:
+            model_name = model_cost['model_name']
+            monthly_cost = model_cost['total_cost'] * archetype_weight
+
+            monthly_breakdown_rows.append({
+                'Archetype': archetype_name,
+                'Model': model_name,
+                'Employees': f"{archetype_weight:.0f}",
+                'Monthly Cost': f"${monthly_cost:.2f}"
+            })
+
+    monthly_breakdown_df = pd.DataFrame(monthly_breakdown_rows)
+
+    # Add a pivot table view for better visualization
+    pivot_df = pd.DataFrame(monthly_breakdown_rows)
+    pivot_df['Monthly Cost'] = pivot_df['Monthly Cost'].str.replace('$', '').astype(float)
+    pivot_table = pd.pivot_table(
+        pivot_df, 
+        values='Monthly Cost', 
+        index=['Archetype'], 
+        columns=['Model'], 
+        aggfunc='sum',
+        fill_value=0
+    )
+
+    # Format the pivot table values as currency
+    formatted_pivot = pivot_table.applymap(lambda x: f"${x:.2f}")
+
+    # Add row totals
+    row_totals = pivot_table.sum(axis=1)
+    formatted_pivot['Total'] = row_totals.apply(lambda x: f"${x:.2f}")
+
+    # Add column totals
+    col_totals = pivot_table.sum(axis=0)
+    total_row = col_totals.apply(lambda x: f"${x:.2f}")
+    total_row['Total'] = f"${col_totals.sum():.2f}"
+    formatted_pivot.loc['Total'] = total_row
+
+    st.dataframe(formatted_pivot, use_container_width=True)
+
+    # Verify that the total matches the Total Monthly API Cost
+    total_from_pivot = col_totals.sum()
+    if abs(total_from_pivot - total_monthly_api_cost) > 0.01:
+        st.warning(f"Note: There is a small discrepancy between the Total Monthly API Cost (${total_monthly_api_cost:.2f}) and the sum of the Monthly Cost Breakdown (${total_from_pivot:.2f}). This may be due to rounding differences.")
+
 # Tab 4: Export
 with tab4:
     st.markdown('<div class="sub-header">Export Data</div>', unsafe_allow_html=True)
@@ -563,6 +618,45 @@ with tab4:
 
     detailed_results_df = pd.DataFrame(detailed_results)
 
+    # 5. Monthly Cost Breakdown DataFrame (with weighted costs)
+    monthly_breakdown_export = []
+    for result in results:
+        archetype_name = result['archetype_name']
+        archetype_percentage = result['percentage']
+        archetype_weight = archetype_percentage / 100 * organization_size
+
+        for model_cost in result['model_costs']:
+            model_name = model_cost['model_name']
+            monthly_cost = model_cost['total_cost'] * archetype_weight
+
+            monthly_breakdown_export.append({
+                'Archetype': archetype_name,
+                'Model': model_name,
+                'Number of Employees': archetype_weight,
+                'Monthly Cost (USD)': monthly_cost
+            })
+
+    monthly_breakdown_df = pd.DataFrame(monthly_breakdown_export)
+
+    # Create pivot table for export
+    pivot_table_export = pd.pivot_table(
+        monthly_breakdown_df, 
+        values='Monthly Cost (USD)', 
+        index=['Archetype'], 
+        columns=['Model'], 
+        aggfunc='sum',
+        fill_value=0
+    )
+
+    # Add row totals
+    pivot_table_export['Total'] = pivot_table_export.sum(axis=1)
+
+    # Add column totals
+    pivot_table_export.loc['Total'] = pivot_table_export.sum(axis=0)
+
+    # Reset index to make 'Archetype' a regular column
+    pivot_table_export = pivot_table_export.reset_index()
+
     # Export buttons
     col1, col2 = st.columns(2)
 
@@ -575,6 +669,10 @@ with tab4:
         st.dataframe(archetypes_df, use_container_width=True)
         st.markdown(get_csv_download_link(archetypes_df, "genai_archetypes.csv", "Download Archetypes CSV"), unsafe_allow_html=True)
 
+        st.markdown("### Monthly Cost Breakdown by Archetype and Model")
+        st.dataframe(monthly_breakdown_df, use_container_width=True)
+        st.markdown(get_csv_download_link(monthly_breakdown_df, "genai_monthly_breakdown.csv", "Download Monthly Breakdown CSV"), unsafe_allow_html=True)
+
     with col2:
         st.markdown("### AI Models Data")
         st.dataframe(models_df, use_container_width=True)
@@ -584,12 +682,18 @@ with tab4:
         st.dataframe(detailed_results_df, use_container_width=True)
         st.markdown(get_csv_download_link(detailed_results_df, "genai_detailed_results.csv", "Download Detailed Results CSV"), unsafe_allow_html=True)
 
+        st.markdown("### Monthly Cost Breakdown Pivot Table")
+        st.dataframe(pivot_table_export, use_container_width=True)
+        st.markdown(get_csv_download_link(pivot_table_export, "genai_monthly_breakdown_pivot.csv", "Download Monthly Breakdown Pivot CSV"), unsafe_allow_html=True)
+
     # Export all data in a single file
     all_data = {
         'Summary': summary_df,
         'User Archetypes': archetypes_df,
         'AI Models': models_df,
-        'Detailed Results': detailed_results_df
+        'Detailed Results': detailed_results_df,
+        'Monthly Cost Breakdown': monthly_breakdown_df,
+        'Monthly Cost Breakdown Pivot': pivot_table_export
     }
 
     # Create Excel file in memory
