@@ -50,7 +50,7 @@ if 'user_archetypes' not in st.session_state:
     st.session_state.user_archetypes = [
         {
             'name': 'Explorer',
-            'percentage': 50,
+            'percentage': 67,
             'prompts_per_day': 5,
             'input_tokens_per_prompt': 500,
             'output_tokens_per_prompt': 1000
@@ -240,6 +240,7 @@ with tab1:
     elif total_percentage < 100:
         non_user_percentage = 100 - total_percentage
         st.info(f"Total percentage of employees across all archetypes is {total_percentage}%. The remaining {non_user_percentage}% represents non-users who will be counted for license costs but not for API costs.")
+        st.warning(f"Calculations are also incorrect below 100% — if you need to represent non-users, might be best to just reduce the company size variable.")
 
 # Tab 2: AI Models
 with tab2:
@@ -425,24 +426,27 @@ with tab3:
     ])
 
     st.dataframe(archetype_summary, use_container_width=True)
-    # Create a DataFrame for model usage by archetype
-    model_usage_rows = []
-    for result in results:
-        for model_cost in result['model_costs']:
-            model_usage_rows.append({
-                'Archetype': result['archetype_name'],
-                'Model': model_cost['model_name'],
-                'Monthly Input Tokens': f"{model_cost['input_tokens']:,.0f}",
-                'Monthly Output Tokens': f"{model_cost['output_tokens']:,.0f}",
-                'Input Cost': f"${model_cost['input_cost']:.5f}",
-                'Output Cost': f"${model_cost['output_cost']:.5f}",
-                'Total Cost': f"${model_cost['total_cost']:.5f}"
-            })
-
-    model_usage_df = pd.DataFrame(model_usage_rows)
-
-    st.markdown('<div class="sub-header">Model Usage by Archetype</div>', unsafe_allow_html=True)
-    st.dataframe(model_usage_df, use_container_width=True)
+    # Hiding this section temporarily since it's misleading if interpreted
+    # incorrectly.
+    #
+    # # Create a DataFrame for model usage by archetype
+    # model_usage_rows = []
+    # for result in results:
+    #     for model_cost in result['model_costs']:
+    #         model_usage_rows.append({
+    #             'Archetype': result['archetype_name'],
+    #             'Model': model_cost['model_name'],
+    #             'Monthly Input Tokens': f"{model_cost['input_tokens']:,.0f}",
+    #             'Monthly Output Tokens': f"{model_cost['output_tokens']:,.0f}",
+    #             'Input Cost': f"${model_cost['input_cost']:.5f}",
+    #             'Output Cost': f"${model_cost['output_cost']:.5f}",
+    #             'Total Cost': f"${model_cost['total_cost']:.5f}"
+    #         })
+    #
+    # model_usage_df = pd.DataFrame(model_usage_rows)
+    #
+    # st.markdown('<div class="sub-header">Model Usage by Archetype</div>', unsafe_allow_html=True)
+    # st.dataframe(model_usage_df, use_container_width=True)
 
     # Display cost breakdown by model
     st.markdown('<div class="sub-header">Cost Breakdown by Model</div>', unsafe_allow_html=True)
@@ -570,7 +574,7 @@ with tab3:
     )
 
     # Format the pivot table values as currency
-    formatted_pivot = pivot_table.applymap(lambda x: f"${x:.2f}")
+    formatted_pivot = pivot_table.map(lambda x: f"${x:.2f}")
 
     # Add row totals
     row_totals = pivot_table.sum(axis=1)
