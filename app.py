@@ -65,51 +65,72 @@ if 'user_archetypes' not in st.session_state:
     st.session_state.user_archetypes = [
         {
             'name': 'Explorer',
-            'percentage': 60,
+            'percentage': 50,
             'prompts_per_day': 5,
-            'input_tokens_per_prompt': 200,
-            'output_tokens_per_prompt': 800
-        },
-        {
-            'name': 'Creator',
-            'percentage': 30,
-            'prompts_per_day': 15,
-            'input_tokens_per_prompt': 300,
-            'output_tokens_per_prompt': 1200
-        },
-        {
-            'name': 'Builder',
-            'percentage': 10,
-            'prompts_per_day': 30,
             'input_tokens_per_prompt': 500,
-            'output_tokens_per_prompt': 2000
-        }
+            'output_tokens_per_prompt': 1000
+        },
+        {
+            'name': 'Developer',
+            'percentage': 20,
+            'prompts_per_day': 15,
+            'input_tokens_per_prompt': 1000,
+            'output_tokens_per_prompt': 3000
+        },
+        {
+            'name': 'Builder A',
+            'percentage': 5,
+            'prompts_per_day': 20,
+            'input_tokens_per_prompt': 5000,
+            'output_tokens_per_prompt': 10000
+        },
+        {
+            'name': 'Builder B',
+            'percentage': 5,
+            'prompts_per_day': 50,
+            'input_tokens_per_prompt': 2000,
+            'output_tokens_per_prompt': 5000
+        },
+        {
+            'name': 'Agent',
+            'percentage': 3,
+            'prompts_per_day': 5,
+            'input_tokens_per_prompt': 50000,
+            'output_tokens_per_prompt': 100000
+        },
+
     ]
 
 if 'ai_models' not in st.session_state:
     st.session_state.ai_models = [
         {
-            'name': 'GPT-4o',
-            'input_price_per_1M': 10.0,
-            'output_price_per_1M': 30.0,
+            'name': 'Gemini 2.0 Flash',
+            'input_price_per_1M': 0.15,
+            'output_price_per_1M': 0.60,
+            'usage_percentage': 30
+        },
+        {
+            'name': 'Gemini 2.5 Pro Preview',
+            'input_price_per_1M': 1.25,
+            'output_price_per_1M': 10,
+            'usage_percentage': 25
+        },
+        {
+            'name': 'Claude 3.5 Sonnet',
+            'input_price_per_1M': 3,
+            'output_price_per_1M': 15,
             'usage_percentage': 20
         },
         {
-            'name': 'GPT-3.5 Turbo',
-            'input_price_per_1M': 0.5,
-            'output_price_per_1M': 1.5,
-            'usage_percentage': 50
+            'name': 'GPT-4.1',
+            'input_price_per_1M': 2,
+            'output_price_per_1M': 8,
+            'usage_percentage': 15
         },
         {
-            'name': 'Claude 3 Haiku',
-            'input_price_per_1M': 1.0,
-            'output_price_per_1M': 5.0,
-            'usage_percentage': 20
-        },
-        {
-            'name': 'Gemini 1.5 Flash',
-            'input_price_per_1M': 0.35,
-            'output_price_per_1M': 1.05,
+            'name': 'o4-mini',
+            'input_price_per_1M': 1.10,
+            'output_price_per_1M': 4.40,
             'usage_percentage': 10
         }
     ]
