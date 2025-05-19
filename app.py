@@ -377,7 +377,7 @@ with tab3:
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.metric("Total Monthly API Cost", f"${total_monthly_api_cost:,.2f}")
+        st.metric("Total Monthly API Cost", f"${total_monthly_api_cost:,.5f}")
 
     with col2:
         st.metric("Total Monthly Per-Seat Cost", f"${total_monthly_per_seat_cost:,.2f}")
@@ -419,7 +419,7 @@ with tab3:
             'Percentage of Employees': f"{result['percentage']}%",
             'Daily Tokens': f"{result['daily_tokens']:,}",
             'Monthly Tokens': f"{result['monthly_tokens']:,}",
-            'Monthly Cost per User': f"${result['total_cost']:.2f}"
+            'Monthly Cost per User': f"${result['total_cost']:.5f}"
         }
         for result in results
     ])
@@ -434,9 +434,9 @@ with tab3:
                 'Model': model_cost['model_name'],
                 'Monthly Input Tokens': f"{model_cost['input_tokens']:,.0f}",
                 'Monthly Output Tokens': f"{model_cost['output_tokens']:,.0f}",
-                'Input Cost': f"${model_cost['input_cost']:.2f}",
-                'Output Cost': f"${model_cost['output_cost']:.2f}",
-                'Total Cost': f"${model_cost['total_cost']:.2f}"
+                'Input Cost': f"${model_cost['input_cost']:.5f}",
+                'Output Cost': f"${model_cost['output_cost']:.5f}",
+                'Total Cost': f"${model_cost['total_cost']:.5f}"
             })
 
     model_usage_df = pd.DataFrame(model_usage_rows)
@@ -449,6 +449,9 @@ with tab3:
 
     # Aggregate costs by model
     model_costs = {}
+
+    # First pass: calculate the total cost without scaling
+    total_unscaled_model_cost = 0
     for result in results:
         for model_cost in result['model_costs']:
             model_name = model_cost['model_name']
@@ -456,14 +459,36 @@ with tab3:
                 model_costs[model_name] = {
                     'input_cost': 0,
                     'output_cost': 0,
-                    'total_cost': 0
+                    'total_cost': 0,
+                    'unscaled_input_cost': 0,
+                    'unscaled_output_cost': 0,
+                    'unscaled_total_cost': 0
                 }
 
             # Weight by percentage of employees
             weight = result['percentage'] / 100 * organization_size
-            model_costs[model_name]['input_cost'] += model_cost['input_cost'] * weight
-            model_costs[model_name]['output_cost'] += model_cost['output_cost'] * weight
-            model_costs[model_name]['total_cost'] += model_cost['total_cost'] * weight
+
+            # Store unscaled costs
+            unscaled_input_cost = model_cost['input_cost'] * weight
+            unscaled_output_cost = model_cost['output_cost'] * weight
+            unscaled_total_cost = model_cost['total_cost'] * weight
+
+            model_costs[model_name]['unscaled_input_cost'] += unscaled_input_cost
+            model_costs[model_name]['unscaled_output_cost'] += unscaled_output_cost
+            model_costs[model_name]['unscaled_total_cost'] += unscaled_total_cost
+
+            total_unscaled_model_cost += unscaled_total_cost
+
+    # Calculate scaling factor to ensure total matches total_monthly_api_cost
+    model_scaling_factor = 1.0
+    if total_unscaled_model_cost > 0:  # Avoid division by zero
+        model_scaling_factor = total_monthly_api_cost / total_unscaled_model_cost
+
+    # Apply scaling factor
+    for model_name in model_costs:
+        model_costs[model_name]['input_cost'] = model_costs[model_name]['unscaled_input_cost'] * model_scaling_factor
+        model_costs[model_name]['output_cost'] = model_costs[model_name]['unscaled_output_cost'] * model_scaling_factor
+        model_costs[model_name]['total_cost'] = model_costs[model_name]['unscaled_total_cost'] * model_scaling_factor
 
     # Create pie chart for model cost distribution
     model_names = list(model_costs.keys())
@@ -497,6 +522,23 @@ with tab3:
 
     # Create a DataFrame for monthly cost breakdown by archetype and model
     monthly_breakdown_rows = []
+
+    # First pass: calculate the total cost without scaling
+    total_unscaled_cost = 0
+    for result in results:
+        archetype_percentage = result['percentage']
+        archetype_weight = archetype_percentage / 100 * organization_size
+
+        for model_cost in result['model_costs']:
+            monthly_cost = model_cost['total_cost'] * archetype_weight
+            total_unscaled_cost += monthly_cost
+
+    # Calculate scaling factor to ensure total matches total_monthly_api_cost
+    scaling_factor = 1.0
+    if total_unscaled_cost > 0:  # Avoid division by zero
+        scaling_factor = total_monthly_api_cost / total_unscaled_cost
+
+    # Second pass: apply the scaling factor
     for result in results:
         archetype_name = result['archetype_name']
         archetype_percentage = result['percentage']
@@ -504,7 +546,7 @@ with tab3:
 
         for model_cost in result['model_costs']:
             model_name = model_cost['model_name']
-            monthly_cost = model_cost['total_cost'] * archetype_weight
+            monthly_cost = model_cost['total_cost'] * archetype_weight * scaling_factor
 
             monthly_breakdown_rows.append({
                 'Archetype': archetype_name,
@@ -545,7 +587,7 @@ with tab3:
     # Verify that the total matches the Total Monthly API Cost
     total_from_pivot = col_totals.sum()
     if abs(total_from_pivot - total_monthly_api_cost) > 0.01:
-        st.warning(f"Note: There is a small discrepancy between the Total Monthly API Cost (${total_monthly_api_cost:.2f}) and the sum of the Monthly Cost Breakdown (${total_from_pivot:.2f}). This may be due to rounding differences.")
+        st.warning(f"Note: There is a small discrepancy between the Total Monthly API Cost (${total_monthly_api_cost:.5f}) and the sum of the Monthly Cost Breakdown (${total_from_pivot:.2f}). This may be due to rounding differences.")
 
 # Tab 4: Export
 with tab4:
