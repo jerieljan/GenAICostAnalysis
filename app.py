@@ -229,8 +229,11 @@ with tab1:
 
     # Validate total percentage
     total_percentage = sum(archetype['percentage'] for archetype in st.session_state.user_archetypes)
-    if total_percentage != 100:
-        st.warning(f"Total percentage of employees across all archetypes should be 100%. Current total: {total_percentage}%")
+    if total_percentage > 100:
+        st.warning(f"Total percentage of employees across all archetypes cannot exceed 100%. Current total: {total_percentage}%")
+    elif total_percentage < 100:
+        non_user_percentage = 100 - total_percentage
+        st.info(f"Total percentage of employees across all archetypes is {total_percentage}%. The remaining {non_user_percentage}% represents non-users who will be counted for license costs but not for API costs.")
 
 # Tab 2: AI Models
 with tab2:
@@ -356,7 +359,11 @@ with tab3:
     weighted_avg_cost_per_user = sum(result['total_cost'] * (result['percentage'] / 100) for result in results)
 
     # 3. Calculate total monthly costs
-    total_monthly_api_cost = weighted_avg_cost_per_user * organization_size
+    # Calculate the percentage of employees who are actually users
+    total_user_percentage = sum(archetype['percentage'] for archetype in st.session_state.user_archetypes)
+    # Only count actual users for API costs
+    total_monthly_api_cost = weighted_avg_cost_per_user * (total_user_percentage / 100 * organization_size)
+    # Count all employees for license costs
     total_monthly_per_seat_cost = per_seat_license_cost * organization_size
     cost_savings = total_monthly_per_seat_cost - total_monthly_api_cost
 
@@ -420,7 +427,6 @@ with tab3:
     ])
 
     st.dataframe(archetype_summary, use_container_width=True)
-
     # Create a DataFrame for model usage by archetype
     model_usage_rows = []
     for result in results:
